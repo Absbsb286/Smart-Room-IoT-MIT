@@ -1,0 +1,30 @@
+services:
+  - type: web
+    name: smartroom-bridge
+    runtime: node
+    plan: free
+    region: singapore
+    branch: main
+    buildCommand: npm ci
+    startCommand: npm start
+    healthCheckPath: /health
+    autoDeploy: true
+    envVars:
+      - key: NODE_VERSION
+        value: "22"
+      - key: MQTT_HOST
+        sync: false
+      - key: MQTT_PORT
+        value: "8883"
+      - key: MQTT_USERNAME
+        sync: false
+      - key: MQTT_PASSWORD
+        sync: false
+      - key: MQTT_CLIENT_ID
+        value: smartroom-mit-bridge-001
+      - key: MQTT_TLS
+        value: "true"
+      - key: DEVICE_ID
+        value: room1
+      - key: MOBILE_TOKEN
+        sync: false

@@ -1,0 +1,20 @@
+{
+  "name": "smartroom-mit-bridge",
+  "version": "1.0.0",
+  "private": true,
+  "description": "REST bridge MQTT untuk aplikasi MIT App Inventor Smart Room IoT (backend terpisah, tidak menyentuh repo lain)",
+  "main": "src/index.js",
+  "scripts": {
+    "start": "node src/index.js",
+    "dev": "node --watch src/index.js",
+    "smoke": "node test/smoke-test.js"
+  },
+  "engines": {
+    "node": ">=18"
+  },
+  "dependencies": {
+    "dotenv": "^16.4.7",
+    "express": "^4.21.2",
+    "mqtt": "^5.10.3"
+  }
+}
