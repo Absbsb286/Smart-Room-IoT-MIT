@@ -25,8 +25,13 @@ const CONFIG_DEFAULTS = {
   thr: {
     temp_max: 28,
     temp_min: 20,
+    hum_max: 70,
+    hum_min: 40,
     gas_max: 600,
+    gas_min: 400,
     noise_max: 500,
+    noise_min: 300,
+    light_max: 700,
     light_min: 100,
   },
 };
@@ -35,8 +40,13 @@ const CONFIG_DEFAULTS = {
 const THR_RULES = {
   temp_max: (v) => v >= 10 && v <= 60,
   temp_min: (v) => v >= -10 && v <= 45,
+  hum_max: (v) => v >= 0 && v <= 100,
+  hum_min: (v) => v >= 0 && v <= 100,
   gas_max: (v) => v >= 0 && v <= 10000,
+  gas_min: (v) => v >= 0 && v <= 10000,
   noise_max: (v) => v >= 0 && v <= 5000,
+  noise_min: (v) => v >= 0 && v <= 5000,
+  light_max: (v) => v >= 0 && v <= 100000,
   light_min: (v) => v >= 0 && v <= 100000,
 };
 
