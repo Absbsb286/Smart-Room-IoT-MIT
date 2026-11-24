@@ -14,11 +14,19 @@ app.disable('x-powered-by');
 app.use(express.json({ limit: '8kb' }));
 app.use(express.urlencoded({ extended: false, limit: '8kb' }));
 
-// CORS (WebViewer/tes browser). App Inventor native tidak butuh, tapi berguna untuk cek cepat.
+// CORS: hanya origin yang diizinkan lewat env ALLOWED_ORIGINS.
+// Default kosong = tanpa header CORS (app App Inventor native tidak memerlukannya).
+// Ini menutup temuan "Access-Control-Allow-Origin: *" pada audit.
 app.use((req, res, next) => {
-  res.set('Access-Control-Allow-Origin', '*');
-  res.set('Access-Control-Allow-Headers', 'Content-Type, X-Mobile-Token');
-  res.set('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
+  const origin = req.headers.origin;
+  const allow = config.allowedOrigins;
+  if (origin && (allow.includes('*') || allow.includes(origin))) {
+    res.set('Access-Control-Allow-Origin', allow.includes('*') ? '*' : origin);
+    res.set('Vary', 'Origin');
+    res.set('Access-Control-Allow-Headers', 'Content-Type, X-Mobile-Token');
+    res.set('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
+    res.set('Access-Control-Max-Age', '600');
+  }
   if (req.method === 'OPTIONS') return res.sendStatus(204);
   return next();
 });

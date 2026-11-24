@@ -91,9 +91,11 @@ function publishCmd(actuator, state, overrideS = 0) {
 
 function publishConfig(cfg) {
   if (!isConnected()) return false;
-  client.publish(`${topicBase()}/config`, JSON.stringify(cfg), { qos: 1, retain: true }, (err) => {
+  // K2: kirim bentuk nested (kontrak web) DAN duplikat flat (firmware lama).
+  const payload = { ...cfg, ...(cfg.thr && typeof cfg.thr === 'object' ? cfg.thr : {}) };
+  client.publish(`${topicBase()}/config`, JSON.stringify(payload), { qos: 1, retain: true }, (err) => {
     if (err) console.error('[MQTT] publish config error:', err.message);
-    else console.log('[MQTT] -> config (retained)', cfg);
+    else console.log('[MQTT] -> config (retained)', payload);
   });
   return true;
 }

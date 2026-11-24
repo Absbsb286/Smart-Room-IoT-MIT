@@ -57,9 +57,38 @@ npm start
 npm run smoke                  # uji endpoint (tidak mengirim perintah aktuator)
 ```
 
+## Status produksi (19 Nov 2026)
+
+| Item | Nilai |
+|---|---|
+| Render service | `smartroom-bridge` (`srv-dbv5nt9srm7s73bgk21g`) |
+| Plan / region | **Free** ($0, 0.1 CPU / 512 MB) · Singapore |
+| Build / Start | `npm ci` / `npm start` · health check `/health` |
+| Status | **Deploy succeeded** |
+| Repo | `Absbsb286/Smart-Room-IoT-MIT` (public), branch `main` |
+| `/health` | `{"status":"ok","mqtt":true,"device":"room1","mobile":{"token":true}}` |
+
+> Repo dibuat **public** karena Render GitHub App hanya terotorisasi 1 repo dan perubahan
+> installation butuh verifikasi email (terblokir). Tidak ada resource berbayar yang dipakai.
+
+Catatan operasional: `/api/mobile/values` mengembalikan `-|-|-|-|-|…` bila ESP32 tidak mengirim
+topik `smartroom/room1/live` (state & status tetap terbaca → sisi bridge sehat).
+
+## tools/local-env-server.js
+
+Utilitas **sekali pakai** untuk menyajikan env var ke `http://127.0.0.1:3999` supaya kredensial
+bisa diisi ke dashboard Render **tanpa ditulis di log/chat**:
+
+```powershell
+node tools/local-env-server.js
+# ambil nilainya di browser / curl, lalu hentikan prosesnya (Ctrl+C)
+```
+
+Folder ini tidak mengubah file apa pun dan tidak perlu tetap berjalan di Render.
+
 ## Deploy ke Render (free)
 
-1. Push repo ini ke GitHub (sudah ada repo private `Smart-Room-IoT-MIT`).
+1. Push repo ini ke GitHub (sudah ada repo `Smart-Room-IoT-MIT`).
 2. Render → **New → Web Service** → pilih repo `Smart-Room-IoT-MIT`.
    - Region: Singapore · Plan: **Free** · Root Directory: (kosong) · Build: `npm ci` · Start: `npm start`
    - Health Check Path: `/health`

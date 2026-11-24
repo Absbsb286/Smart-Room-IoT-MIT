@@ -26,6 +26,13 @@ module.exports = {
   },
   deviceId: process.env.DEVICE_ID || 'room1',
   port: parseInt(process.env.PORT || '3002', 10),
+  // Daftar origin yang boleh mengakses bridge dari browser (CORS).
+  // Kosong = tidak ada header CORS (paling aman; app native tidak butuh CORS).
+  // Contoh: https://smart-room-iot-eight.vercel.app,https://admin.example.com
+  allowedOrigins: (process.env.ALLOWED_ORIGINS || '')
+    .split(',')
+    .map((s) => s.trim())
+    .filter(Boolean),
   // Token untuk APP (isi di TextBox12 pada aplikasi App Inventor).
   // Kalau kosong -> endpoint /api/mobile/* membalas 503 (kontrol alat tanpa kunci dicegah).
   mobileToken: process.env.MOBILE_TOKEN || '',

@@ -21,6 +21,7 @@ const CMD_STATES = ['on', 'off', 'open', 'close'];
 const CONFIG_DEFAULTS = {
   interval_live_s: 10,
   interval_log_s: 300,
+  mode: 'manual',
   thr: {
     temp_max: 28,
     temp_min: 20,
@@ -70,12 +71,22 @@ function requireToken(req, res, next) {
 
 function currentConfig() {
   const remote = mqtt.getLast('config');
-  if (!remote || typeof remote !== 'object') return CONFIG_DEFAULTS;
+  if (!remote || typeof remote !== 'object') return { ...CONFIG_DEFAULTS, thr: { ...CONFIG_DEFAULTS.thr } };
   const num = (v, d) => (Number.isFinite(Number(v)) ? Number(v) : d);
+
+  // K2: config bisa berbentuk nested ({thr:{...}}) atau flat (kunci langsung).
+  const remoteThr = remote.thr && typeof remote.thr === 'object' ? remote.thr : {};
+  const thr = { ...CONFIG_DEFAULTS.thr };
+  for (const key of Object.keys(CONFIG_DEFAULTS.thr)) {
+    if (remoteThr[key] !== undefined) thr[key] = num(remoteThr[key], thr[key]);
+    else if (remote[key] !== undefined) thr[key] = num(remote[key], thr[key]);
+  }
+
   return {
     interval_live_s: num(remote.interval_live_s, CONFIG_DEFAULTS.interval_live_s),
     interval_log_s: num(remote.interval_log_s, CONFIG_DEFAULTS.interval_log_s),
-    thr: { ...CONFIG_DEFAULTS.thr, ...(remote.thr && typeof remote.thr === 'object' ? remote.thr : {}) },
+    mode: remote.mode === 'auto' ? 'auto' : 'manual',
+    thr,
   };
 }
 
@@ -95,12 +106,17 @@ router.get('/values', requireToken, (req, res) => {
   const live = snap.live || {};
   const st = snap.state || {};
   const pick = (v) => (v === undefined || v === null || v === '' ? '-' : String(v));
+  // K3: firmware lama hanya mengirim "light"; firmware baru mengirim "lightRaw".
+  // Terima keduanya supaya kolom cahaya tidak pernah "-" saat sensor mengirim.
+  const lightVal = (live.lightRaw === undefined || live.lightRaw === null || live.lightRaw === '')
+    ? live.light
+    : live.lightRaw;
   const line = [
     pick(live.temp),
     pick(live.hum),
     pick(live.gas),
     pick(live.noise),
-    pick(live.lightRaw),
+    pick(lightVal),
     pick(st.fan),
     pick(st.ac),
     pick(st.heater),
@@ -161,8 +177,17 @@ router.post('/config', requireToken, (req, res) => {
   const next = {
     interval_live_s: num(body.interval_live_s, base.interval_live_s),
     interval_log_s: num(body.interval_log_s, base.interval_log_s),
+    mode: base.mode,
     thr: { ...base.thr },
   };
+
+  if (body.mode !== undefined && body.mode !== null && body.mode !== '') {
+    const m = String(body.mode).toLowerCase();
+    if (m !== 'manual' && m !== 'auto') {
+      return res.status(400).json({ ok: false, error: 'bad_mode', allowed: ['manual', 'auto'] });
+    }
+    next.mode = m;
+  }
 
   if (next.interval_live_s < 2 || next.interval_live_s > 3600) {
     return res.status(400).json({ ok: false, error: 'bad_interval_live_s' });
